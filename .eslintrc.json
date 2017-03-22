@@ -1,0 +1,13 @@
+{
+    "extends": "airbnb",
+    "root": true,
+    "ecmaVersion": 6,
+    "env": {
+        "node": true,
+        "mocha": true
+    },
+    "rules": {
+        "linebreak-style": "off",
+        "no-console": "off"
+    }
+}

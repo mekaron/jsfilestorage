@@ -1,10 +1,11 @@
-var express = require('express')
-var app = express()
+const express = require('express');
+
+const app = express();
 
 const jsfs = require('./jsfs');
 
 app.use('/', jsfs);
 
-app.listen(3000, function () {
-  console.log('App listening on port 3000!')
-})
+app.listen(3000, () => {
+  console.log('App listening on port 3000!');
+});
