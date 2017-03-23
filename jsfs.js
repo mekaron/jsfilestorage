@@ -1,12 +1,21 @@
 const express = require('express');
 const multer = require('multer');
 const uuid = require('node-uuid');
-
-const crypto = require('./services/crypto');
+const config = require('./config');
 
 const router = express.Router();
 
-const files = {};
+router.setSetting = (key, value) => {
+  config[key] = value;
+};
+router.getSetting = key => config[key];
+
+router.use((req, res, next) => {
+  if (!config.mounted) {
+    return next(new Error('No mounted path'));
+  }
+  next();
+});
 
 router.use(multer({
   rename() {
@@ -18,15 +27,10 @@ router.use(multer({
   inMemory: true,
 }));
 
+router.use('/public', express.static('public'));
+router.get('/:id', require('./routes/downloadFile'));
+router.post('/', require('./routes/uploadFile'));
 
-router.get('/:hash', (req, res) => {
-  res.send(files[req.params.hash]);
-});
-
-router.post('/', (req, res) => {
-  const hash = crypto.makeHash(req.files.image.buffer);
-  files[hash] = req.files.image.buffer;
-  res.send(hash);
-});
+require('./services/ws')();
 
 module.exports = router;

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Target</title>
+	<!-- Hello! -->
+</head>
+<body>
+	<h1>Target Browsing session</h1>
+	<button id="resetclient" class="btn btn-default">resetclient</button>
+	<p>
+		All actions are logged for debugging. <br>
+		On a live target, you can only see the traffic by going to the network tab in the inspector (F12)
+	</p>
+	<h2>Console</h2>
+	<p class="container" id="fakeConsole">
+
+	</p>
+	<script src="http://code.jquery.com/jquery.min.js"></script>
+	<script>
+		jQuery(document).ready(function($) {
+			$("#resetclient").click(function(){
+				localStorage.clear();
+				location.reload();
+			})
+		});
+
+		// http://stackoverflow.com/questions/3954438/remove-item-from-array-by-value
+		Array.prototype.remove = function() {
+		    var what, a = arguments, L = a.length, ax;
+		    while (L && this.length) {
+		        what = a[--L];
+		        while ((ax = this.indexOf(what)) !== -1) {
+		            this.splice(ax, 1);
+		        }
+		    }
+		    return this;
+		};
+
+		// debug function
+		function echo( e ){
+			$("#fakeConsole").prepend(e + "<br>");
+		}
+
+		var ws = new WebSocket('ws://localhost:8080');
+		// register or login
+		// the uuid helps track clients between sessions
+		ws.onopen = function () {
+			if(localStorage.uuid){
+				login(ws);
+			}else{
+				var p = {
+					type : "REGISTER"
+				};
+				echo("REGISTER")
+		  		ws.send(JSON.stringify(p));
+			}
+		};
+		function login(ws){
+			p = {};
+			p.type = "LOGIN";
+			p.uuid = localStorage.uuid;
+			p.parts = localStorage.parts;
+			echo("LOGIN")
+	  		ws.send(JSON.stringify(p));
+		}
+
+		// server messages enter here
+		// based on the type some code is executed
+		// in an ideal world the code would come from the server. that way the client has no way of figuring out what the script does.
+		ws.onmessage = function(message){
+			console.log('msg:');
+			var msg = JSON.parse(message.data);
+			console.log(msg.type);
+			switch(msg.type){
+				// debug function.
+				case "MSG":
+					echo(msg.data);
+					break;
+				// set the uuid and login
+				case "SETUP":
+					echo("GOT SETUP " + msg.uuid);
+					localStorage.uuid = msg.uuid;
+					login(ws);
+					break;
+				// store a part
+				// if we already have the part discard it
+				// ping the server we received and stored the part
+				case "STORE":
+					if(!localStorage.parts){
+						localStorage.parts = JSON.stringify([]);
+					}
+					parts = JSON.parse(localStorage.parts);
+					// if exists ignore
+					if(parts.indexOf(msg.partid) == -1){
+						echo("STORING ID " + msg.partid);
+						console.log(parts);
+						parts.push( msg.partid );
+						localStorage.parts = JSON.stringify(parts);
+						localStorage[msg.partid] = msg.data;
+					}
+
+					var p = {
+						type : "STORED",
+						partid : msg.partid
+					}
+					ws.send(JSON.stringify(p));
+					break;
+				// remove a part
+				// used when a client logs in and the part is not known on the server
+				// this also prevents client side altering of the keys
+				case "REMOVE":
+					echo("REMOVING ID " + msg.partid);
+					parts = JSON.parse(localStorage.parts);
+					parts.remove( msg.partid );
+					localStorage.parts = JSON.stringify(parts);
+					localStorage.removeItem(msg.partid);
+					break;
+				// serve a part to the server
+				// fail silently if we dont have the part
+				// this allows asking all clients for a certain part
+				case "REQUEST":
+					if(localStorage[msg.partid]){
+						echo("SERVING ID " + msg.partid);
+						var p = {
+							type : "SERVE",
+							partid : msg.partid,
+							data : localStorage[msg.partid]
+						};
+						ws.send(JSON.stringify(p));
+					}else{
+						//fail silently if we dont have the part
+					}
+					break;
+			}
+		}
+
+	</script>
+</body>
+</html>

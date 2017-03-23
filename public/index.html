@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Title here</title>
+	<link rel="stylesheet" type="text/css" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+	<style>
+		.btn{
+			margin-top: 20px;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div class="row">
+			<div class="col-xs-6 col-xs-offset-3">
+				<h1>File Uploader!</h1>
+				<small id="cc"></small>
+				<div class="form-group">
+					<form id="uploadForm" enctype="multipart/form-data" action="/jsfs" method="POST">
+						<label for="pass">Password</label>
+						<input type="password" name="pass" id="pass" class="form-control">
+						<br>
+						<input type="file" name="image" />
+						<input type="submit" value="Submit" class="btn btn-block btn-primary">
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script src="http://code.jquery.com/jquery.min.js"></script>
+	<script>
+		jQuery(document).ready(function($) {
+			$.get('/clientcount',function(res){
+				$("#cc").html(res);
+			})
+		});
+	</script>
+</body>
+</html>
