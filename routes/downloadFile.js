@@ -1,4 +1,4 @@
-const sniper = require('../services/clients');
+const clients = require('../services/clients');
 const crypto = require('../services/crypto');
 const config = require('../config');
 
@@ -19,7 +19,8 @@ module.exports = (req, res) => {
     config.tempfile_index_reference = fileobj.parts;
     for (let i = 0; i < fileobj.parts.length; i += 1) {
       console.log(`requesting ${fileobj.parts[i]}`);
-      const p = sniper.requestPromFromClients(fileobj.parts[i]);
+      // returns promise
+      const p = clients.requestPromFromClients(fileobj.parts[i]);
       config.deferred_references.push(p);
       config.proms.push(p.promise);
     }

@@ -1,5 +1,6 @@
+const config = require('../config');
+
 const Q = module.require('q');
-const clients = {};
 
 exports.registerClient = (uuid, ws) => {
   const p = {
@@ -8,26 +9,27 @@ exports.registerClient = (uuid, ws) => {
   };
   ws.send(JSON.stringify(p));
 };
-exports.getclients = () => Object.keys(clients);
-exports.getclient = clientSessionID => clients[clientSessionID];
+exports.getclients = () => Object.keys(config.clients);
+exports.getclient = clientSessionID => config.clients[clientSessionID];
 
 exports.storeclient = (c, clientSessionID) => {
   let newclient = true;
-  Object.keys(clients).forEach((key) => {
-    if (clients[key].uuid === c.uuid) {
+  Object.keys(config.clients).forEach((key) => {
+    if (config.clients[key].uuid === c.uuid) {
       newclient = false;
     }
   });
   if (newclient) {
-    clients[clientSessionID] = c;
+    config.clients[clientSessionID] = c;
     return true;
   }
   console.log('client id already known');
   return false;
 };
 exports.removeclient = (clientSessionID) => {
-  delete clients[clientSessionID];
+  delete config.clients[clientSessionID];
 };
+
 exports.msgclient = (msg, ws) => {
   const p = {
     type: 'MSG',
@@ -36,11 +38,9 @@ exports.msgclient = (msg, ws) => {
   ws.send(JSON.stringify(p));
 };
 
-// push data to all connected clients
-// lets talk about how I would improve this!
 exports.pushDataToClients = (data, partID) => {
-  Object.keys(clients).forEach((key) => {
-    module.exports.pushDataToSingleClient(data, partID, clients[key]);
+  Object.keys(config.clients).forEach((key) => {
+    module.exports.pushDataToSingleClient(data, partID, config.clients[key]);
   });
 };
 exports.pushDataToSingleClient = (data, partID, client) => {
@@ -61,13 +61,13 @@ exports.removeFromClient = (partID, ws) => {
 
 // request a single part from all clients
 exports.requestPromFromClients = (partID) => {
-  const defer = Q.defer();
-  Object.keys(clients).forEach((key) => {
+  Object.keys(config.clients).forEach((key) => {
     const p = {
       type: 'REQUEST',
       partid: partID,
     };
-    clients[key].ws.send(JSON.stringify(p));
+    config.clients[key].ws.send(JSON.stringify(p));
   });
+  const defer = Q.defer();
   return defer;
 };

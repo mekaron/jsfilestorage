@@ -1,8 +1,9 @@
 const crypto = require('../services/crypto');
-const sniper = require('../services/clients');
+const clients = require('../services/clients');
 const config = require('../config');
 
 const WebSocketServer = require('ws').Server;
+const _ = require('lodash');
 
 module.exports = () => {
   const wss = new WebSocketServer({ port: 8080 });
@@ -13,15 +14,13 @@ module.exports = () => {
     ws.on('message', (message) => {
       const msg = JSON.parse(message);
       switch (msg.type) {
-        default:
-          break;
         case 'REGISTER':
-          sniper.registerClient(crypto.makeUUID(), ws);
+          clients.registerClient(crypto.makeUUID(), ws);
           break;
         case 'LOGIN':
           msg.ws = ws;
-          if (sniper.storeclient(msg, userSessionID)) {
-            sniper.msgclient(`Hello client: ${msg.uuid}`, ws);
+          if (clients.storeclient(msg, userSessionID)) {
+            clients.msgclient(`Hello client: ${msg.uuid}`, ws);
             if (msg.parts) {
               console.log('parts: ');
               console.log(msg.parts);
@@ -33,13 +32,13 @@ module.exports = () => {
                   }
                 } else {
                   console.log(`${msg.parts[i]} is not in storage`);
-                  sniper.removeFromClient(msg.parts[i], ws);
+                  clients.removeFromClient(msg.parts[i], ws);
                 }
               }
             }
           } else {
             console.log(`refused client ${userSessionID}`);
-            sniper.msgclient('refused', ws);
+            clients.msgclient('refused', ws);
           }
           break;
         case 'STORED':
@@ -52,7 +51,7 @@ module.exports = () => {
           if (config.partrequests.indexOf(msg.partid) >= 0) {
             console.log(`got served part ${msg.partid}`);
             config.partrequests.remove(msg.partid);
-            sniper.pushDataToClients(msg.data, msg.partid);
+            clients.pushDataToClients(msg.data, msg.partid);
           } else if (config.tempfile_index_reference.indexOf(msg.partid) !== -1) {
             console.log(`got ${msg.partid} for download`);
             config.deferred_references[
@@ -62,13 +61,17 @@ module.exports = () => {
             console.log(`got served but didnt need ${msg.partid}`);
           }
           break;
+        default:
+          // fail silently
+          break;
       }
     });
     ws.on('close', () => {
-      sniper.removeclient(userSessionID);
+      clients.removeclient(userSessionID);
       Object.keys(config.partstorage).forEach((key) => {
-        if (config.partstorage[key].clients.indexOf(userSessionID) !== -1) {
-          config.partstorage[key].clients.remove(userSessionID);
+        const partClients = config.partstorage[key].clients;
+        if (partClients.indexOf(userSessionID) !== -1) {
+          config.partstorage[key].clients = _.remove(partClients, userSessionID);
         }
       });
     });
