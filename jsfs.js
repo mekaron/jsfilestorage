@@ -5,10 +5,8 @@ const config = require('./config');
 
 const router = express.Router();
 
-router.setSetting = (key, value) => {
-  config[key] = value;
-};
-router.getSetting = key => config[key];
+// export config to outside
+router.config = config;
 
 router.use((req, res, next) => {
   if (!config.mounted) {

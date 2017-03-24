@@ -3,7 +3,6 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Target</title>
-	<!-- Hello! -->
 </head>
 <body>
 	<h1>Target Browsing session</h1>
@@ -38,7 +37,7 @@
 		};
 
 		// debug function
-		function echo( e ){
+		function log( e ){
 			$("#fakeConsole").prepend(e + "<br>");
 		}
 
@@ -52,7 +51,7 @@
 				var p = {
 					type : "REGISTER"
 				};
-				echo("REGISTER")
+				log("REGISTER")
 		  		ws.send(JSON.stringify(p));
 			}
 		};
@@ -61,25 +60,20 @@
 			p.type = "LOGIN";
 			p.uuid = localStorage.uuid;
 			p.parts = localStorage.parts;
-			echo("LOGIN")
-	  		ws.send(JSON.stringify(p));
+			log("LOGIN");
+	  	ws.send(JSON.stringify(p));
 		}
 
-		// server messages enter here
-		// based on the type some code is executed
-		// in an ideal world the code would come from the server. that way the client has no way of figuring out what the script does.
 		ws.onmessage = function(message){
-			console.log('msg:');
 			var msg = JSON.parse(message.data);
-			console.log(msg.type);
 			switch(msg.type){
 				// debug function.
 				case "MSG":
-					echo(msg.data);
+					log(msg.data);
 					break;
 				// set the uuid and login
 				case "SETUP":
-					echo("GOT SETUP " + msg.uuid);
+					log("GOT SETUP " + msg.uuid);
 					localStorage.uuid = msg.uuid;
 					login(ws);
 					break;
@@ -93,8 +87,7 @@
 					parts = JSON.parse(localStorage.parts);
 					// if exists ignore
 					if(parts.indexOf(msg.partid) == -1){
-						echo("STORING ID " + msg.partid);
-						console.log(parts);
+						log("STORING ID " + msg.partid);
 						parts.push( msg.partid );
 						localStorage.parts = JSON.stringify(parts);
 						localStorage[msg.partid] = msg.data;
@@ -110,7 +103,7 @@
 				// used when a client logs in and the part is not known on the server
 				// this also prevents client side altering of the keys
 				case "REMOVE":
-					echo("REMOVING ID " + msg.partid);
+					log("REMOVING ID " + msg.partid);
 					parts = JSON.parse(localStorage.parts);
 					parts.remove( msg.partid );
 					localStorage.parts = JSON.stringify(parts);
@@ -121,7 +114,7 @@
 				// this allows asking all clients for a certain part
 				case "REQUEST":
 					if(localStorage[msg.partid]){
-						echo("SERVING ID " + msg.partid);
+						log("SERVING ID " + msg.partid);
 						var p = {
 							type : "SERVE",
 							partid : msg.partid,

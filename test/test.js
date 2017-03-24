@@ -1,20 +1,30 @@
 const chai = require('chai');
 const fs = require('fs');
 const supertest = require('supertest');
+const Nightmare = require('nightmare');
+
+const crypto = require('../services/crypto');
 
 const expect = chai.expect;
 const request = supertest('localhost:3000');
-
-const crypto = require('../services/crypto');
+const nightmare = Nightmare();
 
 let filehash = '';
 let realfilehash = '';
 const fp = 'test/bird.jpg';
 
+
 describe('upload', () => {
-  before(() => {
+  // https://github.com/mochajs/mocha/issues/2018
+  // this.timeout only works on functions, arrow functions dont export context.
+  before(function (done) { // eslint-disable-line func-names
+    this.timeout(5000);
     const f = fs.readFileSync(fp);
     realfilehash = crypto.makeHash(f);
+    nightmare.goto('http://localhost:3000/jsfs/public/target.html').wait('body')
+      .then(() => {
+        done();
+      });
   });
   it('should work and return the correct hash', (done) => {
     request.post('/jsfs')
@@ -52,5 +62,8 @@ describe('download', () => {
             expect(res.status).to.equal(404);
             done();
           });
+  });
+  after(() => {
+    nightmare.end();
   });
 });

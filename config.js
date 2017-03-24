@@ -1,5 +1,5 @@
 module.exports = {
-  mounted: undefined,
+  mounted: '/jsfs',
   chunksize: 1024 * 100,
 
   files: {}, // all files currently in the system and their relevant parts

@@ -1,73 +1,97 @@
 const config = require('../config');
 
 const Q = module.require('q');
+const _ = module.require('lodash');
 
-exports.registerClient = (uuid, ws) => {
+module.exports = {
+  registerClient,
+  getclients,
+  getclient,
+  storeclient,
+  removeclient,
+  msgclient,
+  pushDataToClients,
+  pushDataToSingleClient,
+  removeFromClient,
+  requestPromFromClients,
+};
+
+function registerClient(uuid, ws) {
   const p = {
     type: 'SETUP',
     uuid,
   };
   ws.send(JSON.stringify(p));
-};
-exports.getclients = () => Object.keys(config.clients);
-exports.getclient = clientSessionID => config.clients[clientSessionID];
+}
+function getclients() {
+  return _.keys(config.clients);
+}
+function getclient(clientSessionID) {
+  return config.clients[clientSessionID];
+}
 
-exports.storeclient = (c, clientSessionID) => {
+function storeclient(client, clientSessionID) {
   let newclient = true;
-  Object.keys(config.clients).forEach((key) => {
-    if (config.clients[key].uuid === c.uuid) {
+  _.each(_.keys(config.clients), (key) => {
+    if (_.get(config, `clients[${key}].uuid`) === client.uuid) {
       newclient = false;
     }
   });
   if (newclient) {
-    config.clients[clientSessionID] = c;
+    config.clients[clientSessionID] = client;
     return true;
   }
   console.log('client id already known');
   return false;
-};
-exports.removeclient = (clientSessionID) => {
-  delete config.clients[clientSessionID];
-};
+}
 
-exports.msgclient = (msg, ws) => {
+function removeclient(clientSessionID) {
+  delete config.clients[clientSessionID];
+}
+
+function msgclient(data, ws) {
   const p = {
     type: 'MSG',
-    data: msg,
+    data,
   };
   ws.send(JSON.stringify(p));
-};
+}
 
-exports.pushDataToClients = (data, partID) => {
-  Object.keys(config.clients).forEach((key) => {
-    module.exports.pushDataToSingleClient(data, partID, config.clients[key]);
+function pushDataToClients(data, partID) {
+  _.each(_.keys(config.clients), (key) => {
+    pushDataToSingleClient(data, partID, config.clients[key]);
   });
-};
-exports.pushDataToSingleClient = (data, partID, client) => {
+}
+function pushDataToSingleClient(data, partid, client) {
   const p = {
     type: 'STORE',
-    partid: partID,
+    partid,
     data,
   };
   client.ws.send(JSON.stringify(p));
-};
-exports.removeFromClient = (partID, ws) => {
+}
+function removeFromClient(partid, ws) {
   const p = {
     type: 'REMOVE',
-    partid: partID,
+    partid,
   };
   ws.send(JSON.stringify(p));
-};
+}
 
-// request a single part from all clients
-exports.requestPromFromClients = (partID) => {
-  Object.keys(config.clients).forEach((key) => {
+function requestPromFromClients(partid) {
+  _.each(_.keys(config.clients), (key) => {
     const p = {
       type: 'REQUEST',
-      partid: partID,
+      partid,
     };
-    config.clients[key].ws.send(JSON.stringify(p));
+    const client = _.get(config, `clients[${key}].ws`);
+    if (!client) {
+      return console.log(`Client not found ${key}`);
+    }
+    client.send(JSON.stringify(p));
   });
+  // returns an empty promise
+  // fulfillment happens when a part returns from websocket
   const defer = Q.defer();
   return defer;
-};
+}
