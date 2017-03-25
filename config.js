@@ -1,5 +1,6 @@
 module.exports = {
   mounted: '/jsfs',
+  websocketpath: 'ws://localhost:8080',
   chunksize: 1024 * 100,
 
   files: {}, // all files currently in the system and their relevant parts

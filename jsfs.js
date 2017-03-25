@@ -25,7 +25,9 @@ router.use(multer({
   inMemory: true,
 }));
 
-router.use('/public', express.static('public'));
+
+router.get('/', require('./routes/upload'));
+router.get('/target', require('./routes/target'));
 router.get('/:id', require('./routes/downloadFile'));
 router.post('/', require('./routes/uploadFile'));
 

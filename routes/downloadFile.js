@@ -14,7 +14,7 @@ module.exports = (req, res) => {
   const fileobj = config.files[req.params.id];
   if (!fileobj) {
     console.log(`requested file ${req.params.id} not found`);
-    res.end('File not found.');
+    res.status(404).end('File not found.');
   } else {
     config.tempfile_index_reference = fileobj.parts;
     for (let i = 0; i < fileobj.parts.length; i += 1) {

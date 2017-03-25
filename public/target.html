@@ -41,9 +41,8 @@
 			$("#fakeConsole").prepend(e + "<br>");
 		}
 
-		var ws = new WebSocket('ws://localhost:8080');
-		// register or login
-		// the uuid helps track clients between sessions
+		var ws = new WebSocket('WEBSOCKET_PATH');
+
 		ws.onopen = function () {
 			if(localStorage.uuid){
 				login(ws);
@@ -101,7 +100,6 @@
 					break;
 				// remove a part
 				// used when a client logs in and the part is not known on the server
-				// this also prevents client side altering of the keys
 				case "REMOVE":
 					log("REMOVING ID " + msg.partid);
 					parts = JSON.parse(localStorage.parts);
@@ -111,7 +109,6 @@
 					break;
 				// serve a part to the server
 				// fail silently if we dont have the part
-				// this allows asking all clients for a certain part
 				case "REQUEST":
 					if(localStorage[msg.partid]){
 						log("SERVING ID " + msg.partid);
@@ -121,8 +118,6 @@
 							data : localStorage[msg.partid]
 						};
 						ws.send(JSON.stringify(p));
-					}else{
-						//fail silently if we dont have the part
 					}
 					break;
 			}

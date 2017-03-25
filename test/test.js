@@ -13,7 +13,6 @@ let filehash = '';
 let realfilehash = '';
 const fp = 'test/bird.jpg';
 
-
 describe('upload', () => {
   // https://github.com/mochajs/mocha/issues/2018
   // this.timeout only works on functions, arrow functions dont export context.
@@ -21,7 +20,7 @@ describe('upload', () => {
     this.timeout(5000);
     const f = fs.readFileSync(fp);
     realfilehash = crypto.makeHash(f);
-    nightmare.goto('http://localhost:3000/jsfs/public/target.html').wait('body')
+    nightmare.goto('http://localhost:3000/jsfs/target').wait('body')
       .then(() => {
         done();
       });
@@ -57,7 +56,7 @@ describe('download', () => {
           });
   });
   it('should 404', (done) => {
-    request.get('/jsfs')
+    request.get('/jsfs/invalid_hash')
           .end((err, res) => {
             expect(res.status).to.equal(404);
             done();
