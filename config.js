@@ -6,7 +6,7 @@ module.exports = {
   files: {}, // all files currently in the system and their relevant parts
   partstorage: {}, // all parts in the systems and their clients
   clients: {},
-  partrequests: [], //
+  partrequests: [],
   proms: [],
   deferred_references: [],
   tempfile_index_reference: [],

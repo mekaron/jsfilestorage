@@ -6,7 +6,7 @@ const Q = require('q');
 const fileType = require('file-type');
 
 module.exports = (req, res) => {
-  // reset globals
+  // cancel any waiting requests
   config.deferred_references = [];
   config.proms = [];
   config.tempfile_index_reference = [];

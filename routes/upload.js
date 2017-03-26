@@ -1,5 +1,3 @@
-// const crypto = require('../services/crypto');
-// const clients = require('../services/clients');
 const config = require('../config');
 const fs = require('fs');
 

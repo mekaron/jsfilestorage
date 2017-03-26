@@ -5,9 +5,6 @@ const config = require('./config');
 
 const router = express.Router();
 
-// export config to outside
-router.config = config;
-
 router.use((req, res, next) => {
   if (!config.mounted) {
     return next(new Error('No mounted path'));
@@ -17,10 +14,10 @@ router.use((req, res, next) => {
 
 router.use(multer({
   rename() {
-    return uuid.v1().replace(/-/g, '');
+    return uuid.v4().replace(/-/g, '');
   },
   limits: {
-    fieldSize: 5000000,
+    fieldSize: 500000, // 500mb
   },
   inMemory: true,
 }));
