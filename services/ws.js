@@ -52,10 +52,10 @@ module.exports = () => {
             console.log(`got served part ${msg.partid}`);
             config.partrequests.remove(msg.partid);
             clients.pushDataToClients(msg.data, msg.partid);
-          } else if (config.tempfile_index_reference.indexOf(msg.partid) !== -1) {
+          } else if (config.requestedFileParts.indexOf(msg.partid) !== -1) {
             console.log(`got ${msg.partid} for download`);
-            config.deferred_references[
-              config.tempfile_index_reference.indexOf(msg.partid)
+            config.requestPromisesDefer[
+              config.requestedFileParts.indexOf(msg.partid)
             ].resolve(msg.data);
           } else {
             console.log(`got served but didnt need ${msg.partid}`);
